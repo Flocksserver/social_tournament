@@ -1,5 +1,5 @@
 [package]
-name = "double_tournament"
+name = "social_double_tournament"
 version = "0.1.0"
 edition = "2018"
 authors = ["Marcel Kaufmann <flocksserver@gmail.com>"]
