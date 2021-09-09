@@ -1,10 +1,11 @@
 [package]
-name = "social_double_tournament"
+name = "social_tournament"
 version = "0.1.0"
 edition = "2018"
 authors = ["Marcel Kaufmann <flocksserver@gmail.com>"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Libray to create a double tournament."
+license = "MIT OR Apache-2.0"
+keywords = ["tournament", "sport", "social", "double", "tabletennis"]
 
 [dependencies]
-round_robin_tournament = "0.1.0"
+round_robin_tournament = "0.3.0"
