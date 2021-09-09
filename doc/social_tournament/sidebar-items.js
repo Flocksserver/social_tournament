@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["double","Small crate to create a social double tournament."],["model",""],["single","Small crate to create a single tournament."]]});

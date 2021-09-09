@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["draw_singles","Public interface to create the single tournament."]]});
