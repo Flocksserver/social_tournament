@@ -24,22 +24,22 @@ use std::ops::Range;
 
 /// Draw options take effect only if the number of players is not completely divisible by 4
 /// Or in other words `number_of_players % 4 != 0`
-/// If no option is provided [AllInAction] is the default one
+/// If no option is provided [DrawOption::AllInAction] is the default one
 #[derive(PartialEq, Clone)]
 pub enum DrawOption {
-    /// [AllInAction] ensures that there are no byes
+    /// [DrawOption::AllInAction] ensures that there are no byes
     /// For 3 players short -> there are one single match and one double with 3 players
     /// For 2 players short -> there is one single match
     /// For 1 player short -> there is one double with 3 players
     /// This is the default option
     AllInAction,
-    /// [ForceDoubleOnly] ensures that there are only full valid double matches with 4 player
+    /// [DrawOption::ForceDoubleOnly] ensures that there are only full valid double matches with 4 player
     /// That implies some byes
     /// For 3 players short -> 1 byes
     /// For 2 players short -> 2 byes
     /// For 1 player short -> 3 bye
     ForceDoubleOnly,
-    /// [ValidCompositionsOnly] ensures that only valid table tennis matches can take place
+    /// [DrawOption::ValidCompositionsOnly] ensures that only valid table tennis matches can take place
     /// In other words: A double have to be played with 4 players
     /// That implies some byes
     /// For 3 players short -> 1 bye

@@ -13,7 +13,7 @@ pub struct RoundSingles {
     pub matches: Vec<SingleMatch>,
 }
 /// Struct that represent a double match. It holds the pairs `double_a` and `double_b`.
-/// The [Tuple] contains two numbers, the unique player ids.
+/// The tuple contains two numbers, the unique player ids.
 #[derive(Debug, Clone)]
 pub struct DoubleMatch {
     pub double_a: (usize, usize),
