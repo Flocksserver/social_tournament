@@ -1,6 +1,52 @@
+//! Small crate to create a single tournament.
+//!
+//! Provides an interface for passing the number of players to participate in the tournament
+//! and the number of rounds you would like to play. It returns a list of [RoundSingles].
+//! # Example
+//! ```
+//! use social_tournament::model::RoundSingles;
+//! use social_tournament::single::draw_singles;
+//!
+//! let tournament: Vec<RoundSingles> = draw_singles(10, 9);
+//! ```
+//!
+
 use crate::model::*;
 use round_robin_tournament::round_robin_tournament::draw;
 
+/// Public interface to create the single tournament.
+///
+/// For a given `number_of_players` and `number_of_rounds` it returns a schedule of Rounds
+/// with the corresponding matches. For `number_of_rounds` < `number_of_players` the round
+/// robin algorithm ensures, that one does not face an opponents twice. For
+/// `number_of_rounds` >= `number_of_players` the round robin is calculated one more round.
+/// For an odd number of players, the algorithm calculates with `number_of_players` + 1.
+/// So you have to make sure that the player who plays against the highest number has a bye.
+/// # Example
+/// ```
+/// use social_tournament::model::RoundSingles;
+/// use social_tournament::single::draw_singles;
+///
+/// let tournament: Vec<RoundSingles> = draw_singles(10, 9);
+/// /*
+/// Creates:
+/// Round number: 0
+/// SingleMatch { a: 0, b: 9 }
+/// SingleMatch { a: 1, b: 8 }
+/// SingleMatch { a: 2, b: 7 }
+/// SingleMatch { a: 3, b: 6 }
+/// SingleMatch { a: 4, b: 5 }
+/// --------------
+/// Round number: 1
+/// SingleMatch { a: 1, b: 9 }
+/// SingleMatch { a: 2, b: 0 }
+/// SingleMatch { a: 3, b: 8 }
+/// SingleMatch { a: 4, b: 7 }
+/// SingleMatch { a: 5, b: 6 }
+/// --------------
+/// ...
+/// */
+/// ```
 pub fn draw_singles(number_of_players: usize, number_of_rounds: usize) -> Vec<RoundSingles> {
     let round_robin_pairs = draw(number_of_players);
     let mut rounds: Vec<RoundSingles> = Vec::new();
