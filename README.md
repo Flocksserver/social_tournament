@@ -15,6 +15,7 @@ The focus is on meeting as many opponents and teammates as possible during the t
 
 ## Example
 
+### Single
 Get rounds for a single tournament (round robin)
 ```rust
 use social_tournament::single::{draw_singles, RoundSingles};
@@ -40,6 +41,7 @@ SingleMatch { a: 5, b: 6 }
 */ 
 ```
 
+### Double
 If you want to get rounds for a double tournament you have to do the following:
 ```rust
 use social_tournament::double::{draw_doubles, RoundDoubles, DrawOption};
@@ -72,9 +74,39 @@ DoubleMatch { double_a: (16, 25), double_b: (18, 23) }
 ...
 */
 ```
-### Double Options
+
+#### Double Options
 For number of players that are not completely divisible by 4 you can choose between three `DrawOption`.
 Depending on the selected option you can have doubles with only 3 players, single matches or player with byes. You have to make sure that the player ids >= `number_of_players` in the schedule post processed correctly. So that you can mark them as byes for example.
+
+### Table distribution
+Tournament matches take place on tables in a room or gym. If the tournament is drawn, you can distribute the
+matches in each round to available tables. Specify how many tables you can provide for the tournament in your room or gym. 
+The algorithm ensures that enough sub-rounds are formed.
+```rust
+use social_tournament::double::{draw_doubles, RoundDoubles};
+use social_tournament::table::{Table, distribute_tables_doubles};
+
+let tournament: Vec<RoundDoubles> = draw_doubles(24, 2, None);
+let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4);
+/*
+Creates:
+Table { table_number: 0, occupied_number: 0 }
+Table { table_number: 1, occupied_number: 0 }
+Table { table_number: 2, occupied_number: 0 }
+Table { table_number: 3, occupied_number: 0 }
+Table { table_number: 0, occupied_number: 1 }
+Table { table_number: 1, occupied_number: 1 }
+--------------
+Table { table_number: 0, occupied_number: 0 }
+Table { table_number: 1, occupied_number: 0 }
+Table { table_number: 2, occupied_number: 0 }
+Table { table_number: 3, occupied_number: 0 }
+Table { table_number: 0, occupied_number: 1 }
+Table { table_number: 1, occupied_number: 1 }
+--------------
+*/
+```
 
 
 ## License
