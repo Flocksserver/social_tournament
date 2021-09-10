@@ -1,18 +1,32 @@
 //! Small crate to create a single tournament.
 //!
-//! Provides an interface for passing the number of players to participate in the tournament
+//! Provides an interface to pass the number of players participating in the tournament
 //! and the number of rounds you would like to play. It returns a list of [RoundSingles].
 //! # Example
 //! ```
-//! use social_tournament::model::RoundSingles;
-//! use social_tournament::single::draw_singles;
+//! use social_tournament::single::{draw_singles, RoundSingles};
 //!
 //! let tournament: Vec<RoundSingles> = draw_singles(10, 9);
 //! ```
 //!
 
-use crate::model::*;
 use round_robin_tournament::round_robin_tournament::draw;
+
+/// Struct for a single tournament that represent one round. It holds the `round_number`
+/// and the `matches` that take place in this round. Matches are a list of [SingleMatch].
+#[derive(Debug, Clone)]
+pub struct RoundSingles {
+    pub round_number: usize,
+    pub matches: Vec<SingleMatch>,
+}
+
+/// Struct that represent a single match. It holds the opponents `a` and `b`.
+/// The unique numbers is the id of the corresponding player.
+#[derive(Debug, Clone)]
+pub struct SingleMatch {
+    pub a: usize,
+    pub b: usize,
+}
 
 /// Public interface to create the single tournament.
 ///
@@ -24,8 +38,7 @@ use round_robin_tournament::round_robin_tournament::draw;
 /// So you have to make sure that the player who plays against the highest number has a bye.
 /// # Example
 /// ```
-/// use social_tournament::model::RoundSingles;
-/// use social_tournament::single::draw_singles;
+/// use social_tournament::single::{draw_singles, RoundSingles};
 ///
 /// let tournament: Vec<RoundSingles> = draw_singles(10, 9);
 /// /*
@@ -71,8 +84,7 @@ pub fn draw_singles(number_of_players: usize, number_of_rounds: usize) -> Vec<Ro
 
 #[cfg(test)]
 mod tests {
-    use crate::single::draw_singles;
-    use crate::model::SingleMatch;
+    use crate::single::{draw_singles, SingleMatch};
 
     #[test]
     fn draw_20_12() {

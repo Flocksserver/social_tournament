@@ -17,8 +17,7 @@ The focus is on meeting as many opponents and teammates as possible during the t
 
 Get rounds for a single tournament (round robin)
 ```rust
-use social_tournament::model::RoundSingles;
-use social_tournament::single::draw_singles;
+use social_tournament::single::{draw_singles, RoundSingles};
 
 let tournament: Vec<RoundSingles> = draw_singles(10,9);
 /*
@@ -43,8 +42,7 @@ SingleMatch { a: 5, b: 6 }
 
 If you want to get rounds for a double tournament you have to do the following:
 ```rust
-use social_tournament::model::RoundDoubles;
-use social_tournament::double::{draw_doubles, DrawOption};
+use social_tournament::double::{draw_doubles, RoundDoubles, DrawOption};
 
 let tournament: Vec<RoundDoubles> = draw_doubles(39, 12, Some(DrawOption::ForceDoubleOnly));
 /*

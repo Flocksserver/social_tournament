@@ -1,6 +1,6 @@
 //! Small crate to create a social double tournament.
 //!
-//! Provides an interface for passing the number of players to participate in the tournament
+//! Provides an interface to pass the number of players participating in the tournament
 //! and the number of rounds you would like to play. It returns a list of [RoundDoubles].
 //! The focus is on meeting as many opponents and teammates as possible during the tournament.
 //! The algorithm try to find unique combinations. If the search takes too long, it gives
@@ -8,19 +8,32 @@
 //!
 //! # Example
 //! ```
-//! use social_tournament::model::RoundDoubles;
-//! use social_tournament::double::draw_doubles;
+//! use social_tournament::double::{draw_doubles, RoundDoubles};
 //!
 //! let tournament: Vec<RoundDoubles> = draw_doubles(40, 12, None);
 //! ```
 //!
 
 use std::collections::HashMap;
-use crate::model::*;
 use round_robin_tournament::round_robin_tournament::draw;
 use std::iter::Peekable;
 use std::ops::Range;
 
+/// Struct for a double tournament that represent one round. It holds the `round_number`
+/// and the `matches` that take place in this round. Matches are a list of [DoubleMatch].
+#[derive(Debug, Clone)]
+pub struct RoundDoubles {
+    pub round_number: usize,
+    pub matches: Vec<DoubleMatch>,
+}
+
+/// Struct that represent a double match. It holds the pairs `double_a` and `double_b`.
+/// The tuple contains two numbers, the unique player ids.
+#[derive(Debug, Clone)]
+pub struct DoubleMatch {
+    pub double_a: (usize, usize),
+    pub double_b: (usize, usize),
+}
 
 /// Draw options take effect only if the number of players is not completely divisible by 4
 /// Or in other words `number_of_players % 4 != 0`
@@ -60,8 +73,7 @@ pub enum DrawOption {
 /// schedule post processed correctly. So that you can mark them as byes for example.
 /// # Example
 /// ```
-/// use social_tournament::model::RoundDoubles;
-/// use social_tournament::double::{draw_doubles, DrawOption};
+/// use social_tournament::double::{draw_doubles, DrawOption, RoundDoubles};
 ///
 /// let tournament: Vec<RoundDoubles> = draw_doubles(39, 12, Some(DrawOption::ForceDoubleOnly));
 /// /*
@@ -332,8 +344,7 @@ fn set_player_opponents(former_opponents: &mut HashMap<usize, Vec<usize>>, playe
 
 #[cfg(test)]
 mod tests {
-    use crate::model::DoubleMatch;
-    use crate::double::{draw_doubles, DrawOption};
+    use crate::double::{draw_doubles, DrawOption, DoubleMatch};
 
     #[test]
     fn draw_144_12() {
