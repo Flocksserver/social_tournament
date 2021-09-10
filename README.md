@@ -61,15 +61,15 @@ DoubleMatch { double_a: (15, 24), double_b: (16, 23) }
 DoubleMatch { double_a: (17, 22), double_b: (18, 21) }
 --------------
 Round number: 1
-DoubleMatch { double_a: (2, 37), double_b: (1, 38) }
-DoubleMatch { double_a: (3, 36), double_b: (4, 35) }
-DoubleMatch { double_a: (5, 34), double_b: (6, 33) }
-DoubleMatch { double_a: (7, 32), double_b: (8, 31) }
-DoubleMatch { double_a: (9, 30), double_b: (10, 29) }
-DoubleMatch { double_a: (11, 28), double_b: (12, 27) }
-DoubleMatch { double_a: (13, 26), double_b: (14, 25) }
-DoubleMatch { double_a: (15, 24), double_b: (16, 23) }
-DoubleMatch { double_a: (17, 22), double_b: (18, 21) }
+DoubleMatch { double_a: (20, 21), double_b: (2, 0) }
+DoubleMatch { double_a: (3, 38), double_b: (7, 34) }
+DoubleMatch { double_a: (4, 37), double_b: (6, 35) }
+DoubleMatch { double_a: (5, 36), double_b: (9, 32) }
+DoubleMatch { double_a: (8, 33), double_b: (10, 31) }
+DoubleMatch { double_a: (11, 30), double_b: (15, 26) }
+DoubleMatch { double_a: (12, 29), double_b: (14, 27) }
+DoubleMatch { double_a: (13, 28), double_b: (17, 24) }
+DoubleMatch { double_a: (16, 25), double_b: (18, 23) }
 --------------
 ...
 */

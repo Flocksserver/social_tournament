@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["DrawOption","Draw options take effect only if the number of players is not completely divisible by 4 Or in other words `number_of_players % 4 != 0` If no option is provided [DrawOption::AllInAction] is the default one"]],"fn":[["draw_doubles","Public interface to create the double tournament."]]});

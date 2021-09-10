@@ -78,15 +78,15 @@ pub enum DrawOption {
 /// DoubleMatch { double_a: (17, 22), double_b: (18, 21) }
 /// --------------
 /// Round number: 1
-/// DoubleMatch { double_a: (2, 37), double_b: (1, 38) }
-/// DoubleMatch { double_a: (3, 36), double_b: (4, 35) }
-/// DoubleMatch { double_a: (5, 34), double_b: (6, 33) }
-/// DoubleMatch { double_a: (7, 32), double_b: (8, 31) }
-/// DoubleMatch { double_a: (9, 30), double_b: (10, 29) }
-/// DoubleMatch { double_a: (11, 28), double_b: (12, 27) }
-/// DoubleMatch { double_a: (13, 26), double_b: (14, 25) }
-/// DoubleMatch { double_a: (15, 24), double_b: (16, 23) }
-/// DoubleMatch { double_a: (17, 22), double_b: (18, 21) }
+/// DoubleMatch { double_a: (20, 21), double_b: (2, 0) }
+/// DoubleMatch { double_a: (3, 38), double_b: (7, 34) }
+/// DoubleMatch { double_a: (4, 37), double_b: (6, 35) }
+/// DoubleMatch { double_a: (5, 36), double_b: (9, 32) }
+/// DoubleMatch { double_a: (8, 33), double_b: (10, 31) }
+/// DoubleMatch { double_a: (11, 30), double_b: (15, 26) }
+/// DoubleMatch { double_a: (12, 29), double_b: (14, 27) }
+/// DoubleMatch { double_a: (13, 28), double_b: (17, 24) }
+/// DoubleMatch { double_a: (16, 25), double_b: (18, 23) }
 /// --------------
 /// ...
 /// */
@@ -126,13 +126,18 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
 
         while has_solution == false {
             let tru = tournament_rounds_used.clone();
-            let mut t_iter = round_robin_pairs.clone().into_iter().filter(|d| tru.contains(d) == false).peekable();
+            let mut t_iter = round_robin_pairs.clone().into_iter().filter(|d| {
+                let mut d_copy = d.clone();
+                d_copy.sort();
+                tru.contains(&d_copy) == false
+            }).peekable();
             while t_iter.peek().is_some() && has_solution == false {
                 let mut current_round = t_iter.next().unwrap();
                 for _rotations in 0..current_round.len() {
                     match get_matches(number_of_players, &mut current_round, &mut former_opponents, meeting_score, &option) {
                         None => {}
                         Some(g) => {
+                            current_round.sort();
                             tournament_rounds_used.push(current_round);
                             rounds.push(RoundDoubles { round_number: i, matches: g.clone() });
                             has_solution = true;
@@ -659,4 +664,5 @@ mod tests {
             assert_eq!(fp.len(), 0);
         });
     }
+
 }
