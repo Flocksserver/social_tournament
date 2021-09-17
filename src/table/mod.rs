@@ -18,10 +18,10 @@ use crate::single::RoundSingles;
 #[derive(Debug, Clone)]
 pub struct Table {
     /// A table has a numerical value to identify it in the gym or room.
-    table_number: usize,
+    pub table_number: usize,
     /// If there are more games than tables, a round must be played in several sub-rounds.
     /// Therefore, a table can be occupied in sub-rounds 0, 1, ...
-    occupied_number: usize,
+    pub occupied_number: usize,
 }
 
 /// Public interface to distribute the tables for the double tournament.
