@@ -10,7 +10,7 @@ checksum = "6055808c8077d4b3f4c8c1a5509d7dc34ceb38dbfce2c8e7945c9d5a7c73a31e"
 
 [[package]]
 name = "social_tournament"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "round_robin_tournament",
 ]
