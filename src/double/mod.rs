@@ -104,21 +104,10 @@ pub enum DrawOption {
 /// */
 /// ```
 pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_option: Option<DrawOption>) -> Vec<RoundDoubles> {
-    let option = match draw_option {
-        None => {
-            if number_of_players % 4 == 0 {
-                None
-            } else {
-                Some(DrawOption::AllInAction)
-            }
-        }
-        Some(o) => {
-            if number_of_players % 4 == 0 {
-                None
-            } else {
-                Some(o.clone())
-            }
-        }
+    let option= if number_of_players % 4 == 0 {
+        None
+    } else {
+        Some(draw_option.unwrap_or(DrawOption::AllInAction))
     };
 
 

@@ -82,13 +82,14 @@ Depending on the selected option you can have doubles with only 3 players, singl
 ### Table distribution
 Tournament matches take place on tables in a room or gym. If the tournament is drawn, you can distribute the
 matches in each round to available tables. Specify how many tables you can provide for the tournament in your room or gym. 
-The algorithm ensures that enough sub-rounds are formed.
+The algorithm ensures that enough sub-rounds are formed. You can specify the forming method by providing the DistributionOption. 
+Depending on the option you choose, can have as many matches as possible in a sub-round or mainly even matches in each sub-round.
 ```rust
 use social_tournament::double::{draw_doubles, RoundDoubles};
 use social_tournament::table::{Table, distribute_tables_doubles};
 
 let tournament: Vec<RoundDoubles> = draw_doubles(24, 2, None);
-let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4);
+let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4, None);
 /*
 Creates:
 Table { table_number: 0, occupied_number: 0 }
