@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["Marcel Kaufmann <flocksserver@gmail.com>"]
 description = "Libray to create a social double or single tournament."
 license = "MIT OR Apache-2.0"
-keywords = ["tournament", "sport", "social", "double", "single", "tabletennis"]
+keywords = ["tournament", "sport", "social", "double", "tabletennis"]
 
 [dependencies]
 round_robin_tournament = "0.3.0"
