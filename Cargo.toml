@@ -1,6 +1,6 @@
 [package]
 name = "social_tournament"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2018"
 authors = ["Marcel Kaufmann <flocksserver@gmail.com>"]
 description = "Libray to create a social double or single tournament."

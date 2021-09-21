@@ -187,14 +187,19 @@ fn get_matches(number_of_players: usize, r: &mut Vec<(usize, usize)>, former_opp
         } else {
             // should add single opponents?
             if option.is_some() && pos1.is_some() && number_of_players % 4 != 3 && option.clone().unwrap() != DrawOption::ForceDoubleOnly {
-                let double_a: (usize, usize) = r.get(pos1.unwrap()).unwrap().clone();
-                if has_conflict(former_opponents, &double_a, &ghost_double.unwrap(), meeting_score, option, &ghost_double) {
-                    conflict_list.push(double_a);
-                    conflict_list.push(ghost_double.unwrap())
+                if number_of_players % 4 == 1 && option.clone().unwrap() == DrawOption::ValidCompositionsOnly {
+                    // DO NOTHING
                 } else {
-                    matches.push(DoubleMatch { double_a: double_a.clone(), double_b: ghost_double.unwrap().clone() });
-                    set_former_opponents(former_opponents, double_a.clone(), ghost_double.unwrap())
+                    let double_a: (usize, usize) = r.get(pos1.unwrap()).unwrap().clone();
+                    if has_conflict(former_opponents, &double_a, &ghost_double.unwrap(), meeting_score, option, &ghost_double) {
+                        conflict_list.push(double_a);
+                        conflict_list.push(ghost_double.unwrap())
+                    } else {
+                        matches.push(DoubleMatch { double_a: double_a.clone(), double_b: ghost_double.unwrap().clone() });
+                        set_former_opponents(former_opponents, double_a.clone(), ghost_double.unwrap())
+                    }
                 }
+
             }
             break;
         }
@@ -223,7 +228,7 @@ fn get_matches(number_of_players: usize, r: &mut Vec<(usize, usize)>, former_opp
         }
     }
 
-    r.rotate_right(1);
+    r.rotate_left(1);
     if return_none { None } else { Some(matches) }
 }
 
