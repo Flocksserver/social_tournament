@@ -110,7 +110,6 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
         Some(draw_option.unwrap_or(DrawOption::AllInAction))
     };
 
-
     let mut former_opponents: HashMap<usize, Vec<usize>> = HashMap::new();
     for i in 0..number_of_players {
         former_opponents.insert(i, vec![]);
@@ -124,6 +123,10 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
     for i in 0..number_of_rounds {
         let mut has_solution = false;
         let mut meeting_score = 0;
+
+        if tournament_rounds_used.clone().len() == round_robin_pairs.len() {
+            tournament_rounds_used = Vec::new();
+        }
 
         while has_solution == false {
             let tru = tournament_rounds_used.clone();
@@ -355,6 +358,29 @@ mod tests {
                 let fp = r.matches.iter().filter(|p| {
                     p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
                 }).collect::<Vec<&DoubleMatch>>();
+                assert_eq!(fp.len(), 1);
+            }
+        });
+    }
+
+    #[test]
+    fn draw_28_12() {
+        let number_of_players = 28;
+        let number_of_rounds = 12;
+
+        let rounds = draw_doubles(number_of_players, number_of_rounds, None);
+
+        assert_eq!(rounds.len(), number_of_rounds);
+
+        rounds.iter().for_each(|r| {
+            assert_eq!(r.matches.len(), number_of_players / 4);
+            for i in 0..number_of_players {
+                let fp = r.matches.iter().filter(|p| {
+                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
+                }).collect::<Vec<&DoubleMatch>>();
+                println!("Player number {}", i);
+                println!("{:?}",fp);
+                println!("--------------");
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -667,6 +693,25 @@ mod tests {
                 p.double_a.0 == number_of_players + 2 || p.double_a.1 == number_of_players + 2 || p.double_b.0 == number_of_players + 2 || p.double_b.1 == number_of_players + 2
             }).collect::<Vec<&DoubleMatch>>();
             assert_eq!(fp.len(), 0);
+        });
+    }
+    #[test]
+    fn draw_4_5() {
+        let number_of_players = 4;
+        let number_of_rounds = 5;
+
+        let rounds = draw_doubles(number_of_players, number_of_rounds, None);
+
+        assert_eq!(rounds.len(), number_of_rounds);
+
+        rounds.iter().for_each(|r| {
+            assert_eq!(r.matches.len(), number_of_players / 4);
+            for i in 0..number_of_players {
+                let fp = r.matches.iter().filter(|p| {
+                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
+                }).collect::<Vec<&DoubleMatch>>();
+                assert_eq!(fp.len(), 1);
+            }
         });
     }
 

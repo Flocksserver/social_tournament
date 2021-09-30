@@ -124,4 +124,23 @@ mod tests {
             }
         });
     }
+    #[test]
+    fn draw_10_10() {
+        let number_of_players = 10;
+        let number_of_rounds = 10;
+
+        let rounds = draw_singles(number_of_players, number_of_rounds);
+
+        assert_eq!(rounds.len(), number_of_rounds);
+
+        rounds.iter().for_each(|r| {
+            assert_eq!(r.matches.len(), number_of_players / 2);
+            for i in 0..number_of_players {
+                let fp = r.matches.iter().filter(|p| {
+                    p.a == i || p.b == i
+                }).collect::<Vec<&SingleMatch>>();
+                assert_eq!(fp.len(), 1);
+            }
+        });
+    }
 }
