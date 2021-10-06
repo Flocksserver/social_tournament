@@ -23,7 +23,7 @@ pub mod pdf;
 
 type Result<T> = std::result::Result<T, Error>;
 
-/// Default [Error] for this crate
+/// Default [enum@Error] for this crate
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("default social tournament error")]
