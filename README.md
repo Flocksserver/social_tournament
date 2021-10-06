@@ -18,9 +18,16 @@ The focus is on meeting as many opponents and teammates as possible during the t
 ### Single
 Get rounds for a single tournament (round robin)
 ```rust
-use social_tournament::single::{draw_singles, RoundSingles};
+use social_tournament::{Round, SocialTournament, TournamentConfig, TableConfig};
 
-let tournament: Vec<RoundSingles> = draw_singles(10,9);
+let mut tournament = SocialTournament::new(TournamentConfig::Single {
+    number_of_players: 12,
+    number_of_rounds: 2,
+    table_config: TableConfig { available_tables: 10, distribution_option: None }
+});
+
+tournament.draw().unwrap();
+let rounds: Vec<Round> = tournament.rounds.unwrap();
 /*
 Creates:
 Round number: 0
@@ -38,15 +45,23 @@ SingleMatch { a: 4, b: 7 }
 SingleMatch { a: 5, b: 6 }
 --------------
 ...
-*/ 
+*/
 ```
 
 ### Double
 If you want to get rounds for a double tournament you have to do the following:
 ```rust
-use social_tournament::double::{draw_doubles, RoundDoubles, DrawOption};
+use social_tournament::{Round, SocialTournament, TournamentConfig, TableConfig};
 
-let tournament: Vec<RoundDoubles> = draw_doubles(39, 12, Some(DrawOption::ForceDoubleOnly));
+let mut tournament = SocialTournament::new(TournamentConfig::Double {
+    number_of_players: 24,
+    number_of_rounds: 2,
+    draw_option: None,
+    table_config: TableConfig { available_tables: 10, distribution_option: None }
+});
+
+tournament.draw().unwrap();
+let rounds: Vec<Round> = tournament.rounds.unwrap();
 /*
 Creates:
 Round number: 0
@@ -85,11 +100,20 @@ matches in each round to available tables. Specify how many tables you can provi
 The algorithm ensures that enough sub-rounds are formed. You can specify the forming method by providing the DistributionOption. 
 Depending on the option you choose, can have as many matches as possible in a sub-round or mainly even matches in each sub-round.
 ```rust
-use social_tournament::double::{draw_doubles, RoundDoubles};
-use social_tournament::table::{Table, distribute_tables_doubles};
+use social_tournament::{Round, SocialTournament, TournamentConfig, TableConfig};
+use social_tournament::table::Table;
 
-let tournament: Vec<RoundDoubles> = draw_doubles(24, 2, None);
-let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4, None);
+let mut tournament = SocialTournament::new(TournamentConfig::Double {
+    number_of_players: 24,
+    number_of_rounds: 2,
+    draw_option: None,
+    table_config: TableConfig { available_tables: 10, distribution_option: None }
+});
+
+tournament.draw().unwrap();
+tournament.distribute().unwrap();
+
+let tables: Vec<Vec<Table>> = tournament.tables.unwrap();
 /*
 Creates:
 Table { table_number: 0, occupied_number: 0 }
@@ -108,14 +132,34 @@ Table { table_number: 1, occupied_number: 1 }
 --------------
 */
 ```
+### PDF creation
+Currently, there is only the possibility for double tournaments to generate route cards as pdf. In the future will follow singles and referee sheet generation.
+Available languages are English and German.
+```rust
+use social_tournament::{Round, SocialTournament, TournamentConfig, TableConfig};
+use social_tournament::table::Table;
+use social_tournament::pdf::language::Language;
 
+let mut tournament = SocialTournament::new(TournamentConfig::Double {
+    number_of_players: 24,
+    number_of_rounds: 2,
+    draw_option: None,
+    table_config: TableConfig { available_tables: 10, distribution_option: None }
+});
 
+tournament.draw().unwrap();
+tournament.distribute().unwrap();
+tournament.create_route_cards_pdf(Language::EN).unwrap();
+
+let pdf: Vec<u8> = tournament.pdf.unwrap();
+```
+A sample pdf looks like [this](sample.pdf).
 ## License
 
 Licensed under either of
 
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE_APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE_MIT) or https://opensource.org/licenses/MIT)
 
 at your option.
 

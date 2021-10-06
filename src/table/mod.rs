@@ -1,25 +1,9 @@
-//! Small crate to distribute rounds and matches to tables in a room or gym.
-//!
-//! Provides an interface to pass the drawn tournament and your available tables.
-//!
-//! # Example
-//! ```
-//! use social_tournament::double::{draw_doubles, RoundDoubles};
-//! use social_tournament::table::{Table, distribute_tables_doubles};
-//!
-//! let tournament: Vec<RoundDoubles> = draw_doubles(24, 2, None);
-//! let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4, None);
-//! ```
-//!
-
-use crate::double::RoundDoubles;
-use crate::single::RoundSingles;
-
+use crate::Round;
 
 /// Distribution options take effect only if the number of tables is not sufficient to play the
 /// matches in one round.
 /// If no option is provided [DistributionOption::FillUp] is the default one.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum DistributionOption {
     /// [DistributionOption::FillUp] distribute as many matches as possible in the first subround
     /// This means, that all available tables are used.
@@ -41,101 +25,17 @@ pub struct Table {
     pub occupied_number: usize,
 }
 
-/// Public interface to distribute the tables for the double tournament.
+/// Interface to distribute the tables for the tournament.
 ///
-/// Provides an interface to pass the drawn tournament [RoundDoubles] and the number of your
+/// Provides an interface to pass the drawn tournament [Round] and the number of your
 /// `available_tables`.
 /// Sometimes you may have more tables, but not enough space. Specify how
 /// many [Table] you can provide for the tournament in your room or gym. The algorithm ensures
 /// that enough sub-rounds are formed. You can specify the forming method by providing the
 /// [DistributionOption]. Depending on the option you choose, can have as many matches as possible
 /// in a sub-round or mainly even matches in each sub-round.
-///
-/// # Example
-/// ```
-/// use social_tournament::double::{draw_doubles, RoundDoubles};
-/// use social_tournament::table::{Table, distribute_tables_doubles};
-///
-/// let tournament: Vec<RoundDoubles> = draw_doubles(24, 2, None);
-/// let tables: Vec<Vec<Table>> = distribute_tables_doubles(&tournament, 4, None);
-/// /*
-/// Creates:
-/// Table { table_number: 0, occupied_number: 0 }
-/// Table { table_number: 1, occupied_number: 0 }
-/// Table { table_number: 2, occupied_number: 0 }
-/// Table { table_number: 3, occupied_number: 0 }
-/// Table { table_number: 0, occupied_number: 1 }
-/// Table { table_number: 1, occupied_number: 1 }
-/// --------------
-/// Table { table_number: 0, occupied_number: 0 }
-/// Table { table_number: 1, occupied_number: 0 }
-/// Table { table_number: 2, occupied_number: 0 }
-/// Table { table_number: 3, occupied_number: 0 }
-/// Table { table_number: 0, occupied_number: 1 }
-/// Table { table_number: 1, occupied_number: 1 }
-/// --------------
-/// */
-/// ```
-///
-pub fn distribute_tables_doubles(tournament: &Vec<RoundDoubles>, available_tables: usize, distribution_option: Option<DistributionOption>) -> Vec<Vec<Table>> {
-    let number_of_matches = tournament.first().unwrap_or(&RoundDoubles { round_number: 0, matches: vec![] }).matches.len();
-    let option = if number_of_matches <= available_tables {
-        None
-    } else {
-        Some(distribution_option.unwrap_or(DistributionOption::FillUp))
-    };
-
-    let mut tables: Vec<Vec<Table>> = Vec::new();
-    let number_of_sub_rounds = (number_of_matches / available_tables) + 1;
-    tournament.iter().for_each(|r| {
-        let mut tables_for_current_round: Vec<Table> = Vec::new();
-        for i in r.matches.iter().enumerate() {
-            tables_for_current_round.push(get_table_distribution(i.0, available_tables, number_of_sub_rounds, number_of_matches, option.clone()))
-        }
-        tables.push(tables_for_current_round);
-    });
-    tables
-}
-
-
-/// Public interface to distribute the tables for the single tournament.
-///
-/// Provides an interface to pass the drawn tournament [RoundDoubles] and the number of your
-/// `available_tables`.
-/// Sometimes you may have more tables, but not enough space. Specify how
-/// many [Table] you can provide for the tournament in your room or gym. The algorithm ensures
-/// that enough sub-rounds are formed. You can specify the forming method by providing the
-/// [DistributionOption]. Depending on the option you choose, can have as many matches as possible
-/// in a sub-round or mainly even matches in each sub-round.
-///
-/// # Example
-/// ```
-/// use social_tournament::single::{draw_singles, RoundSingles};
-/// use social_tournament::table::{Table, distribute_tables_singles};
-///
-/// let tournament: Vec<RoundSingles> = draw_singles(12, 2);
-/// let tables: Vec<Vec<Table>> = distribute_tables_singles(&tournament, 4, None);
-/// /*
-/// Creates:
-/// Table { table_number: 0, occupied_number: 0 }
-/// Table { table_number: 1, occupied_number: 0 }
-/// Table { table_number: 2, occupied_number: 0 }
-/// Table { table_number: 3, occupied_number: 0 }
-/// Table { table_number: 0, occupied_number: 1 }
-/// Table { table_number: 1, occupied_number: 1 }
-/// --------------
-/// Table { table_number: 0, occupied_number: 0 }
-/// Table { table_number: 1, occupied_number: 0 }
-/// Table { table_number: 2, occupied_number: 0 }
-/// Table { table_number: 3, occupied_number: 0 }
-/// Table { table_number: 0, occupied_number: 1 }
-/// Table { table_number: 1, occupied_number: 1 }
-/// --------------
-/// */
-/// ```
-///
-pub fn distribute_tables_singles(tournament: &Vec<RoundSingles>, available_tables: usize, distribution_option: Option<DistributionOption>) -> Vec<Vec<Table>> {
-    let number_of_matches = tournament.first().unwrap_or(&RoundSingles { round_number: 0, matches: vec![] }).matches.len();
+pub(crate) fn distribute_tables(tournament: &Vec<Round>, available_tables: usize, distribution_option: Option<DistributionOption>) -> Vec<Vec<Table>> {
+    let number_of_matches = tournament.first().unwrap_or(&Round { round_number: 0, matches: vec![] }).matches.len();
     let option = if number_of_matches <= available_tables {
         None
     } else {
@@ -172,13 +72,13 @@ fn get_table_distribution(iteration: usize, available_tables: usize, number_of_s
 
 #[cfg(test)]
 mod tests {
-    use crate::table::{distribute_tables_doubles, DistributionOption, distribute_tables_singles};
-    use crate::double::{RoundDoubles, DoubleMatch};
-    use crate::single::{RoundSingles, SingleMatch};
+    use crate::table::{distribute_tables, DistributionOption};
+    use crate::Match::{DoubleMatch, SingleMatch};
+    use crate::Round;
 
-    fn get_double_data() -> Vec<RoundDoubles> {
+    fn get_double_data() -> Vec<Round> {
         vec![
-            RoundDoubles {
+            Round {
                 round_number: 0,
                 matches: vec![
                     DoubleMatch { double_a: (2, 37), double_b: (1, 38) },
@@ -192,7 +92,7 @@ mod tests {
                     DoubleMatch { double_a: (17, 22), double_b: (18, 21) },
                 ],
             },
-            RoundDoubles {
+            Round {
                 round_number: 1,
                 matches: vec![
                     DoubleMatch { double_a: (20, 21), double_b: (2, 0) },
@@ -209,9 +109,9 @@ mod tests {
         ]
     }
 
-    fn get_single_data() -> Vec<RoundSingles> {
+    fn get_single_data() -> Vec<Round> {
         vec![
-            RoundSingles {
+            Round {
                 round_number: 0,
                 matches: vec![
                     SingleMatch { a: 2, b: 37 },
@@ -225,7 +125,7 @@ mod tests {
                     SingleMatch { a: 17, b: 22 },
                 ],
             },
-            RoundSingles {
+            Round {
                 round_number: 1,
                 matches: vec![
                     SingleMatch { a: 20, b: 21 },
@@ -245,7 +145,7 @@ mod tests {
     #[test]
     fn distribute_double_enough_tables() {
         let data = get_double_data();
-        let tables = distribute_tables_doubles(&data, 9, None);
+        let tables = distribute_tables(&data, 9, None);
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -256,7 +156,7 @@ mod tests {
     #[test]
     fn distribute_double_not_enough_tables_none_option() {
         let data = get_double_data();
-        let tables = distribute_tables_doubles(&data, 3, None);
+        let tables = distribute_tables(&data, 3, None);
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -280,7 +180,7 @@ mod tests {
     #[test]
     fn distribute_double_not_enough_tables_fill_up_option() {
         let data = get_double_data();
-        let tables = distribute_tables_doubles(&data, 4, Some(DistributionOption::FillUp));
+        let tables = distribute_tables(&data, 4, Some(DistributionOption::FillUp));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -304,7 +204,7 @@ mod tests {
     #[test]
     fn distribute_double_not_enough_tables_evenly_option() {
         let data = get_double_data();
-        let tables = distribute_tables_doubles(&data, 4, Some(DistributionOption::Evenly));
+        let tables = distribute_tables(&data, 4, Some(DistributionOption::Evenly));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -328,7 +228,7 @@ mod tests {
     #[test]
     fn distribute_double_not_enough_tables_evenly_option_uneven() {
         let data = get_double_data();
-        let tables = distribute_tables_doubles(&data, 6, Some(DistributionOption::Evenly));
+        let tables = distribute_tables(&data, 6, Some(DistributionOption::Evenly));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -353,7 +253,7 @@ mod tests {
     #[test]
     fn distribute_single_enough_tables() {
         let data = get_single_data();
-        let tables = distribute_tables_singles(&data, 9, None);
+        let tables = distribute_tables(&data, 9, None);
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -364,7 +264,7 @@ mod tests {
     #[test]
     fn distribute_single_not_enough_tables_none_option() {
         let data = get_single_data();
-        let tables = distribute_tables_singles(&data, 3, None);
+        let tables = distribute_tables(&data, 3, None);
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -388,7 +288,7 @@ mod tests {
     #[test]
     fn distribute_single_not_enough_tables_fill_up_option() {
         let data = get_single_data();
-        let tables = distribute_tables_singles(&data, 4, Some(DistributionOption::FillUp));
+        let tables = distribute_tables(&data, 4, Some(DistributionOption::FillUp));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -412,7 +312,7 @@ mod tests {
     #[test]
     fn distribute_single_not_enough_tables_evenly_option() {
         let data = get_single_data();
-        let tables = distribute_tables_singles(&data, 4, Some(DistributionOption::Evenly));
+        let tables = distribute_tables(&data, 4, Some(DistributionOption::Evenly));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {
@@ -436,7 +336,7 @@ mod tests {
     #[test]
     fn distribute_single_not_enough_tables_evenly_option_uneven() {
         let data = get_single_data();
-        let tables = distribute_tables_singles(&data, 6, Some(DistributionOption::Evenly));
+        let tables = distribute_tables(&data, 6, Some(DistributionOption::Evenly));
         assert_eq!(tables.len(), data.len());
         assert_eq!(tables.first().unwrap().len(), data.first().unwrap().matches.len());
         tables.iter().for_each(|t_round| {

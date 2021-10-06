@@ -1,34 +1,8 @@
-//! Small crate to create a single tournament.
-//!
-//! Provides an interface to pass the number of players participating in the tournament
-//! and the number of rounds you would like to play. It returns a list of [RoundSingles].
-//! # Example
-//! ```
-//! use social_tournament::single::{draw_singles, RoundSingles};
-//!
-//! let tournament: Vec<RoundSingles> = draw_singles(10, 9);
-//! ```
-//!
-
 use round_robin_tournament::round_robin_tournament::draw;
+use crate::Round;
+use crate::Match::SingleMatch;
 
-/// Struct for a single tournament that represent one round. It holds the `round_number`
-/// and the `matches` that take place in this round. Matches are a list of [SingleMatch].
-#[derive(Debug, Clone)]
-pub struct RoundSingles {
-    pub round_number: usize,
-    pub matches: Vec<SingleMatch>,
-}
-
-/// Struct that represent a single match. It holds the opponents `a` and `b`.
-/// The unique numbers is the id of the corresponding player.
-#[derive(Debug, Clone)]
-pub struct SingleMatch {
-    pub a: usize,
-    pub b: usize,
-}
-
-/// Public interface to create the single tournament.
+/// Interface to create the single tournament.
 ///
 /// For a given `number_of_players` and `number_of_rounds` it returns a schedule of Rounds
 /// with the corresponding matches. For `number_of_rounds` < `number_of_players` the round
@@ -36,33 +10,10 @@ pub struct SingleMatch {
 /// `number_of_rounds` >= `number_of_players` the round robin is calculated one more round.
 /// For an odd number of players, the algorithm calculates with `number_of_players` + 1.
 /// So you have to make sure that the player who plays against the highest number has a bye.
-/// # Example
-/// ```
-/// use social_tournament::single::{draw_singles, RoundSingles};
-///
-/// let tournament: Vec<RoundSingles> = draw_singles(10, 9);
-/// /*
-/// Creates:
-/// Round number: 0
-/// SingleMatch { a: 0, b: 9 }
-/// SingleMatch { a: 1, b: 8 }
-/// SingleMatch { a: 2, b: 7 }
-/// SingleMatch { a: 3, b: 6 }
-/// SingleMatch { a: 4, b: 5 }
-/// --------------
-/// Round number: 1
-/// SingleMatch { a: 1, b: 9 }
-/// SingleMatch { a: 2, b: 0 }
-/// SingleMatch { a: 3, b: 8 }
-/// SingleMatch { a: 4, b: 7 }
-/// SingleMatch { a: 5, b: 6 }
-/// --------------
-/// ...
-/// */
-/// ```
-pub fn draw_singles(number_of_players: usize, number_of_rounds: usize) -> Vec<RoundSingles> {
+
+pub(crate) fn draw_singles(number_of_players: usize, number_of_rounds: usize) -> Vec<Round> {
     let round_robin_pairs = draw(number_of_players);
-    let mut rounds: Vec<RoundSingles> = Vec::new();
+    let mut rounds: Vec<Round> = Vec::new();
 
     let mut iter_rounds = round_robin_pairs.iter().peekable();
     for i in 0..number_of_rounds {
@@ -77,14 +28,15 @@ pub fn draw_singles(number_of_players: usize, number_of_rounds: usize) -> Vec<Ro
         r.iter().for_each(|p|{
             matches.push(SingleMatch{ a: p.0, b: p.1 })
         });
-        rounds.push(RoundSingles { round_number: i, matches });
+        rounds.push(Round { round_number: i, matches });
     }
     rounds
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::single::{draw_singles, SingleMatch};
+    use crate::single::draw_singles;
+    use crate::Match;
 
     #[test]
     fn draw_20_12() {
@@ -99,8 +51,11 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 2);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.a == i || p.b == i
-                }).collect::<Vec<&SingleMatch>>();
+                    match p {
+                        Match::SingleMatch { a, b } => { a == &i || b == &i}
+                        Match::DoubleMatch { .. } => {false}
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -118,8 +73,11 @@ mod tests {
             assert_eq!(r.matches.len(), (number_of_players + 1) / 2);
             for i in 0..(number_of_players + 1) {
                 let fp = r.matches.iter().filter(|p| {
-                    p.a == i || p.b == i
-                }).collect::<Vec<&SingleMatch>>();
+                    match p {
+                        Match::SingleMatch { a, b } => { a == &i || b == &i}
+                        Match::DoubleMatch { .. } => {false}
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -137,8 +95,11 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 2);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.a == i || p.b == i
-                }).collect::<Vec<&SingleMatch>>();
+                    match p {
+                        Match::SingleMatch { a, b } => { a == &i || b == &i}
+                        Match::DoubleMatch { .. } => {false}
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });

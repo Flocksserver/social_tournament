@@ -1,44 +1,14 @@
-//! Small crate to create a social double tournament.
-//!
-//! Provides an interface to pass the number of players participating in the tournament
-//! and the number of rounds you would like to play. It returns a list of [RoundDoubles].
-//! The focus is on meeting as many opponents and teammates as possible during the tournament.
-//! The algorithm try to find unique combinations. If the search takes too long, it gives
-//! the best solution to meet people as less as possible.
-//!
-//! # Example
-//! ```
-//! use social_tournament::double::{draw_doubles, RoundDoubles};
-//!
-//! let tournament: Vec<RoundDoubles> = draw_doubles(40, 12, None);
-//! ```
-//!
-
 use std::collections::HashMap;
 use round_robin_tournament::round_robin_tournament::draw;
 use std::iter::Peekable;
 use std::ops::Range;
-
-/// Struct for a double tournament that represent one round. It holds the `round_number`
-/// and the `matches` that take place in this round. Matches are a list of [DoubleMatch].
-#[derive(Debug, Clone)]
-pub struct RoundDoubles {
-    pub round_number: usize,
-    pub matches: Vec<DoubleMatch>,
-}
-
-/// Struct that represent a double match. It holds the pairs `double_a` and `double_b`.
-/// The tuple contains two numbers, the unique player ids.
-#[derive(Debug, Clone)]
-pub struct DoubleMatch {
-    pub double_a: (usize, usize),
-    pub double_b: (usize, usize),
-}
+use crate::{Round, Match};
+use crate::Match::DoubleMatch;
 
 /// Draw options take effect only if the number of players is not completely divisible by 4
 /// Or in other words `number_of_players % 4 != 0`
 /// If no option is provided [DrawOption::AllInAction] is the default one
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum DrawOption {
     /// [DrawOption::AllInAction] ensures that there are no byes
     /// For 3 players short -> there are one single match and one double with 3 players
@@ -61,8 +31,7 @@ pub enum DrawOption {
     ValidCompositionsOnly,
 }
 
-
-/// Public interface to create the double tournament.
+/// Interface to create the double tournament.
 ///
 /// For a given `number_of_players` and `number_of_rounds` it returns a schedule of Rounds
 /// with the corresponding matches.
@@ -71,39 +40,7 @@ pub enum DrawOption {
 /// Depending on the selected option you can have doubles with only 3 players, single matches or
 /// player with byes. You have to make sure that the player ids >= `number_of_players` in the
 /// schedule post processed correctly. So that you can mark them as byes for example.
-/// # Example
-/// ```
-/// use social_tournament::double::{draw_doubles, DrawOption, RoundDoubles};
-///
-/// let tournament: Vec<RoundDoubles> = draw_doubles(39, 12, Some(DrawOption::ForceDoubleOnly));
-/// /*
-/// Creates:
-/// Round number: 0
-/// DoubleMatch { double_a: (2, 37), double_b: (1, 38) }
-/// DoubleMatch { double_a: (3, 36), double_b: (4, 35) }
-/// DoubleMatch { double_a: (5, 34), double_b: (6, 33) }
-/// DoubleMatch { double_a: (7, 32), double_b: (8, 31) }
-/// DoubleMatch { double_a: (9, 30), double_b: (10, 29) }
-/// DoubleMatch { double_a: (11, 28), double_b: (12, 27) }
-/// DoubleMatch { double_a: (13, 26), double_b: (14, 25) }
-/// DoubleMatch { double_a: (15, 24), double_b: (16, 23) }
-/// DoubleMatch { double_a: (17, 22), double_b: (18, 21) }
-/// --------------
-/// Round number: 1
-/// DoubleMatch { double_a: (20, 21), double_b: (2, 0) }
-/// DoubleMatch { double_a: (3, 38), double_b: (7, 34) }
-/// DoubleMatch { double_a: (4, 37), double_b: (6, 35) }
-/// DoubleMatch { double_a: (5, 36), double_b: (9, 32) }
-/// DoubleMatch { double_a: (8, 33), double_b: (10, 31) }
-/// DoubleMatch { double_a: (11, 30), double_b: (15, 26) }
-/// DoubleMatch { double_a: (12, 29), double_b: (14, 27) }
-/// DoubleMatch { double_a: (13, 28), double_b: (17, 24) }
-/// DoubleMatch { double_a: (16, 25), double_b: (18, 23) }
-/// --------------
-/// ...
-/// */
-/// ```
-pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_option: Option<DrawOption>) -> Vec<RoundDoubles> {
+pub(crate) fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_option: Option<DrawOption>) -> Vec<Round> {
     let option= if number_of_players % 4 == 0 {
         None
     } else {
@@ -118,7 +55,7 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
     let mut tournament_rounds_used: Vec<Vec<(usize, usize)>> = Vec::new();
 
 
-    let mut rounds: Vec<RoundDoubles> = Vec::new();
+    let mut rounds: Vec<Round> = Vec::new();
 
     for i in 0..number_of_rounds {
         let mut has_solution = false;
@@ -143,7 +80,7 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
                         Some(g) => {
                             current_round.sort();
                             tournament_rounds_used.push(current_round);
-                            rounds.push(RoundDoubles { round_number: i, matches: g.clone() });
+                            rounds.push(Round { round_number: i, matches: g.clone() });
                             has_solution = true;
                             break;
                         }
@@ -161,7 +98,7 @@ pub fn draw_doubles(number_of_players: usize, number_of_rounds: usize, draw_opti
     rounds
 }
 
-fn get_matches(number_of_players: usize, r: &mut Vec<(usize, usize)>, former_opponents: &mut HashMap<usize, Vec<usize>>, meeting_score: usize, option: &Option<DrawOption>) -> Option<Vec<DoubleMatch>> {
+fn get_matches(number_of_players: usize, r: &mut Vec<(usize, usize)>, former_opponents: &mut HashMap<usize, Vec<usize>>, meeting_score: usize, option: &Option<DrawOption>) -> Option<Vec<Match>> {
     let mut matches = Vec::new();
     let mut return_none = false;
 
@@ -341,7 +278,8 @@ fn set_player_opponents(former_opponents: &mut HashMap<usize, Vec<usize>>, playe
 
 #[cfg(test)]
 mod tests {
-    use crate::double::{draw_doubles, DrawOption, DoubleMatch};
+    use crate::double::{draw_doubles, DrawOption};
+    use crate::Match;
 
     #[test]
     fn draw_144_12() {
@@ -356,8 +294,13 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 4);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -376,8 +319,13 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 4);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 println!("Player number {}", i);
                 println!("{:?}",fp);
                 println!("--------------");
@@ -399,8 +347,13 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 4);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -419,8 +372,13 @@ mod tests {
             assert_eq!(r.matches.len(), (number_of_players + 1) / 4);
             for i in 0..(number_of_players + 1) {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -440,8 +398,13 @@ mod tests {
             for i in 0..(number_of_players + 2) {
                 println!("{:?}", r);
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -460,8 +423,13 @@ mod tests {
             assert_eq!(r.matches.len(), (number_of_players + 3) / 4);
             for i in 0..(number_of_players + 3) {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -480,8 +448,13 @@ mod tests {
             assert_eq!(r.matches.len(), (number_of_players + 1) / 4);
             for i in 0..(number_of_players + 1) {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -501,8 +474,13 @@ mod tests {
             for i in 0..(number_of_players + 2) {
                 println!("{:?}", r);
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -521,8 +499,13 @@ mod tests {
             assert_eq!(r.matches.len(), (number_of_players + 3) / 4);
             for i in 0..(number_of_players + 3) {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
@@ -543,20 +526,35 @@ mod tests {
             assert_eq!(r.matches.len(), ((number_of_players + 3) / 4) - 1);
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 1 || p.double_a.1 == number_of_players + 1 || p.double_b.0 == number_of_players + 1 || p.double_b.1 == number_of_players + 1
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 1 || double_a.1 == number_of_players + 1 || double_b.0 == number_of_players + 1 || double_b.1 == number_of_players + 1
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 2 || p.double_a.1 == number_of_players + 2 || p.double_b.0 == number_of_players + 2 || p.double_b.1 == number_of_players + 2
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 2 || double_a.1 == number_of_players + 2 || double_b.0 == number_of_players + 2 || double_b.1 == number_of_players + 2
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
         });
     }
@@ -575,14 +573,24 @@ mod tests {
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 1 || p.double_a.1 == number_of_players + 1 || p.double_b.0 == number_of_players + 1 || p.double_b.1 == number_of_players + 1
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 1 || double_a.1 == number_of_players + 1 || double_b.0 == number_of_players + 1 || double_b.1 == number_of_players + 1
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
         });
     }
@@ -600,20 +608,35 @@ mod tests {
             assert_eq!(r.matches.len(), ((number_of_players + 3) / 4) - 1);
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 1 || p.double_a.1 == number_of_players + 1 || p.double_b.0 == number_of_players + 1 || p.double_b.1 == number_of_players + 1
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 1 || double_a.1 == number_of_players + 1 || double_b.0 == number_of_players + 1 || double_b.1 == number_of_players + 1
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 2 || p.double_a.1 == number_of_players + 2 || p.double_b.0 == number_of_players + 2 || p.double_b.1 == number_of_players + 2
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 2 || double_a.1 == number_of_players + 2 || double_b.0 == number_of_players + 2 || double_b.1 == number_of_players + 2
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
         });
     }
@@ -633,8 +656,13 @@ mod tests {
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
         });
     }
@@ -653,14 +681,24 @@ mod tests {
 
             // ghost player should be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 1);
 
             // ghost player should be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 1 || p.double_a.1 == number_of_players + 1 || p.double_b.0 == number_of_players + 1 || p.double_b.1 == number_of_players + 1
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 1 || double_a.1 == number_of_players + 1 || double_b.0 == number_of_players + 1 || double_b.1 == number_of_players + 1
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 1);
         });
     }
@@ -678,20 +716,35 @@ mod tests {
             assert_eq!(r.matches.len(), ((number_of_players + 3) / 4) - 1);
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players || p.double_a.1 == number_of_players || p.double_b.0 == number_of_players || p.double_b.1 == number_of_players
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players || double_a.1 == number_of_players || double_b.0 == number_of_players || double_b.1 == number_of_players
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 1 || p.double_a.1 == number_of_players + 1 || p.double_b.0 == number_of_players + 1 || p.double_b.1 == number_of_players + 1
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 1 || double_a.1 == number_of_players + 1 || double_b.0 == number_of_players + 1 || double_b.1 == number_of_players + 1
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
 
             // ghost player should not be in the games list
             let fp = r.matches.iter().filter(|p| {
-                p.double_a.0 == number_of_players + 2 || p.double_a.1 == number_of_players + 2 || p.double_b.0 == number_of_players + 2 || p.double_b.1 == number_of_players + 2
-            }).collect::<Vec<&DoubleMatch>>();
+                match p {
+                    Match::SingleMatch { .. } => {false}
+                    Match::DoubleMatch { double_a, double_b } => {
+                        double_a.0 == number_of_players + 2 || double_a.1 == number_of_players + 2 || double_b.0 == number_of_players + 2 || double_b.1 == number_of_players + 2
+                    }
+                }
+            }).collect::<Vec<&Match>>();
             assert_eq!(fp.len(), 0);
         });
     }
@@ -708,8 +761,13 @@ mod tests {
             assert_eq!(r.matches.len(), number_of_players / 4);
             for i in 0..number_of_players {
                 let fp = r.matches.iter().filter(|p| {
-                    p.double_a.0 == i || p.double_a.1 == i || p.double_b.0 == i || p.double_b.1 == i
-                }).collect::<Vec<&DoubleMatch>>();
+                    match p {
+                        Match::SingleMatch { .. } => {false}
+                        Match::DoubleMatch { double_a, double_b } => {
+                            double_a.0 == i || double_a.1 == i || double_b.0 == i || double_b.1 == i
+                        }
+                    }
+                }).collect::<Vec<&Match>>();
                 assert_eq!(fp.len(), 1);
             }
         });
