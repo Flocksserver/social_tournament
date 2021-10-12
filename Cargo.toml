@@ -1,6 +1,6 @@
 [package]
 name = "social_tournament"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2018"
 authors = ["Marcel Kaufmann <flocksserver@gmail.com>"]
 description = "Libray to create a social double or single tournament."
@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["tournament", "sport", "social", "double", "tabletennis"]
 
 [dependencies]
-round_robin_tournament = "0.3.0"
+round_robin_tournament = "0.3.1"
 thiserror = "1.0.29"
 printpdf = "0.4.1"
 base64 = "0.13.0"

@@ -399,9 +399,9 @@ dependencies = [
 
 [[package]]
 name = "round_robin_tournament"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6055808c8077d4b3f4c8c1a5509d7dc34ceb38dbfce2c8e7945c9d5a7c73a31e"
+checksum = "4cb62d01041cd8b3fa05c9b23318654e25803e69661756bfc2e2c10db3e669cf"
 
 [[package]]
 name = "rustc_version"
@@ -469,7 +469,7 @@ checksum = "2579985fda508104f7587689507983eadd6a6e84dd35d6d115361f530916fa0d"
 
 [[package]]
 name = "social_tournament"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "base64",
  "lazy_static",
