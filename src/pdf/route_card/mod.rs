@@ -189,7 +189,7 @@ fn get_player_card(number_of_player: usize, player_number: usize, language: Lang
     let alphabet: Vec<char> = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect();
 
     let name_extension = if number_of_player >= 52 {
-        let div = player_number / 52;
+        let div = player_number / 51;
         if div < 26 { Some(alphabet.get(div).unwrap().to_string()) } else { None }
     } else { None };
 
